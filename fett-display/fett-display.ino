@@ -4,16 +4,19 @@
 // Available under the terms of the MIT license
 
 #include <stdbool.h>
+#include <math.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7789.h>
 #include <SPI.h>
 #include "14SegmentFont.h"
 
-#define TFT_CS      9
-#define TFT_RST     -1
-#define TFT_DC      6
-#define TFT_WIDTH   320
-#define TFT_HEIGHT  240
+#define TFT_CS          9
+#define TFT_RST         -1
+#define TFT_DC          6
+#define TFT_BL          10
+#define TFT_WIDTH       320
+#define TFT_HEIGHT      240
+#define TFT_BRIGHT_PCT  80
 #define BLACK       0x0000
 #define RED         0xF800
 
@@ -24,11 +27,12 @@ static unsigned long fsmNextChange;
 
 
 void setup() {
-  tft.init(TFT_HEIGHT, TFT_WIDTH);  // Set up TFT with correct dimensions
-  tft.fillScreen(BLACK);            // Black background
-  tft.setRotation(3);               // Screen is oriented horizontally
-  fsmTextIndex  = 1;                // Init FSM for text rotation
-  fsmNextChange = 0;                // Init FSM for text rotation
+  analogWrite(TFT_BL, (int)round(255 * (TFT_BRIGHT_PCT / (float)100)));   // Brightness as PWM value
+  tft.init(TFT_HEIGHT, TFT_WIDTH);                                        // Set up TFT with correct dimensions
+  tft.fillScreen(BLACK);                                                  // Black background
+  tft.setRotation(3);                                                     // Screen is oriented horizontally
+  fsmTextIndex  = 1;                                                      // Init FSM for text rotation
+  fsmNextChange = 0;                                                      // Init FSM for text rotation
 }
 
 
