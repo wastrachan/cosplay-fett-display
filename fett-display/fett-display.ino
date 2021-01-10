@@ -17,13 +17,24 @@
 #define TFT_WIDTH       320
 #define TFT_HEIGHT      240
 #define TFT_BRIGHT_PCT  80
-#define BLACK       0x0000
-#define RED         0xF800
-
-Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
+#define BLACK           0x0000
+#define RED             0xF800
 
 static unsigned int  fsmTextIndex;
 static unsigned long fsmNextChange;
+Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
+
+#define NUMSTRINGS 8
+static char *STRINGS[NUMSTRINGS] = {
+  "H  5  2  9  1",
+  "~  ~  ~  ~  ~",
+  " d  *  c o n ",
+  "6  6  2  3  4",
+  "H  G  2  8  C",
+  "~  ~  ~  ~  ~",
+  "H  G  2  0  5",
+  "d  U  E  P  '",
+};
 
 
 void setup() {
@@ -31,7 +42,7 @@ void setup() {
   tft.init(TFT_HEIGHT, TFT_WIDTH);                                        // Set up TFT with correct dimensions
   tft.fillScreen(BLACK);                                                  // Black background
   tft.setRotation(3);                                                     // Screen is oriented horizontally
-  fsmTextIndex  = 1;                                                      // Init FSM for text rotation
+  fsmTextIndex  = 0;                                                      // Init FSM for text rotation
   fsmNextChange = 0;                                                      // Init FSM for text rotation
 }
 
@@ -43,35 +54,37 @@ void loop() {
 
 
 void rotateText() {
+  /**
+   * Rotate through display of several predefined strings
+   * Change strings randomly between 2 and 8 seconds
+   *
+   * Uses a rudimentary FSM to determine if enough time has pased
+   * to warrant a rotation of the string.
+   *
+   * Strings defined as STRINGS, an array of size NUMSTRINGS
+   */
   int nextChange = random(2000,8000);
-  const int numStrings = 8;
-  const char *strings[numStrings];
-
-  strings[0] = "8  8  8  8  8";
-  strings[1] = "6  6  2  3  4";
-  strings[2] = "H  G  2  8  C";
-  strings[3] = "~  ~  ~  ~  ~";
-  strings[4] = "H  G  2  0  5";
-  strings[5] = "d  U  E  P  '";
-  strings[6] = "H  5  2  9  1";
-  strings[7] = " d  *  c o n";
-
   long now = millis();
   if(now > fsmNextChange) {
-    if(fsmTextIndex == numStrings-1){
+    if(fsmTextIndex == NUMSTRINGS-1){
       fsmTextIndex = 0;
     } else {
       fsmTextIndex++;
     }
-    writeText(strings[fsmTextIndex]);
+    writeText(STRINGS[fsmTextIndex]);
     fsmNextChange = now + nextChange;
   }
 }
 
 
 void writeText(char *text) {
+  /**
+   * Write an arbitrary string to an emulated 14 segment display
+   *
+   * @param text String to display (7 chars max)
+   */
   tft.setFont(&Font14Segment_Regular12pt);
-  tft.setCursor(20, 160);
+  tft.setCursor(19, 160);
   tft.setTextColor(RED);
   tft.setTextSize(2);
   tft.fillRect(0, 100, TFT_WIDTH, 120, BLACK);  // Erase existing Text
@@ -80,15 +93,21 @@ void writeText(char *text) {
 
 
 void sweepDisplay() {
+  /**
+   * Illuminate an emulated 9 bar LED bargraph in a sweep
+   * from left to right to left
+   */
   const int numBars = 9;
   const int groupSize = 3;
   const int delayMS = 70;
+
   // Sweep Left
   for(int i=0; i<numBars+groupSize; i++){
     drawBar(i, true);
     drawBar(i-groupSize, false);
     delay(delayMS);
   }
+
   // Sweep Right
   for(int i=numBars+groupSize; i>0; i--){
     drawBar(i-groupSize, true);
@@ -101,10 +120,18 @@ void sweepDisplay() {
 
 
 void drawBar(int pos, bool state){
+  /**
+   * Draw a single "bar" of an emulated 9 bar LED bargraph
+   * Turn bar on or off by position (0-8) and state (bool)
+   *
+   * @param pos Position of "LED" (0-8)
+   * @param state On/Off state of "LED" (true/false)
+   */
   const int barWidth = 30;
   const int barHeight = 80;
   const int padding = 2;
   int x = pos * (barWidth + padding);
+
   if(state == true) {
     tft.fillRect(x, 0, barWidth, barHeight, RED);
   } else {
