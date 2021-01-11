@@ -16,7 +16,7 @@
 #define TFT_BL          10
 #define TFT_WIDTH       320
 #define TFT_HEIGHT      240
-#define TFT_BRIGHT_PCT  80
+#define TFT_BRIGHT_PCT  100
 #define BLACK           0x0000
 #define RED             0xF800
 
